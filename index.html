@@ -375,6 +375,20 @@ document.getElementById("form-lead").addEventListener("submit", function (e) {
   const form = document.getElementById("form-lead");
   const status = document.getElementById("form-status");
   const btn = form.querySelector('button[type="submit"]');
+  const TRACK_KEYS = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid","fbclid"];
+
+// Guarda os parâmetros assim que a página carrega
+(function () {
+  const p = new URLSearchParams(location.search);
+  TRACK_KEYS.forEach(k => {
+    const v = p.get(k);
+    if (v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  });
+})();
+
+function getTrack(k) {
+  try { return sessionStorage.getItem(k) || ""; } catch (e) { return ""; }
+}
 
   // Máscara simples de telefone: (00) 00000-0000
   form.telefone.addEventListener("input", (e) => {
@@ -399,8 +413,9 @@ document.getElementById("form-lead").addEventListener("submit", function (e) {
     dados.append("origem", location.origin + location.pathname);
 
     // UTMs (se a visita vier de anúncio)
-    const p = new URLSearchParams(location.search);
-    ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(k => dados.append(k, p.get(k) || ""));
+    dados.append("gclid", getTrack("gclid"));
+dados.append("fbclid", getTrack("fbclid"));
+TRACK_KEYS.slice(0, 5).forEach(k => dados.append(k, getTrack(k)));
 
     const textoOriginal = btn.innerHTML;
     btn.disabled = true;
